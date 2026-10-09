@@ -6,30 +6,57 @@ class RenderEngine {
 
     }
 
-    async addObject({ object }) {
+    async addObject({ components }) {
         const imagem = new Image()
-        imagem.src = object.image
+        imagem.src = components.sprite.image
         await imagem.decode()
+        components.sprite.size.width = imagem.width
+        components.sprite.size.height = imagem.height
+        const sprite = {
+            image: imagem,
+            offset: {
+                x: components.sprite.offset?.x ?? 0,
+                y: components.sprite.offset?.y ?? 0
+            },
+            size: {
+                width: components.sprite.size.width ?? imagem.width,
+                height: components.sprite.size.height ?? imagem.height
+            },
+
+        }
+
+        if (components.sprite?.crop) {
+            const crop = {
+                x: components.sprite.crop.x ?? 0,
+                y: components.sprite.crop.y ?? 0,
+                width: imagem.width / 4,
+                height: imagem.height
+            };
+            sprite.crop = crop;
+        }
+
         this.renderObjects.push({
             oid: this.idbase += 1,
-            image: imagem,
-            x: object.x + object.offset.x,
-            y: object.y + object.offset.y
+            sprite,
+            transform: {
+                x: components.transform.x + (components.sprite.offset.x ?? 0),
+                y: components.transform.y + (components.sprite.offset.y ?? 0)
+            }
         });
         return this.idbase
     }
 
-    updateObject({ object }) {
+    updateObject({ components }) {
         this.renderObjects.forEach(Renderobjects => {
-            if (Renderobjects.oid === object.oid) {
-                if (Renderobjects.x !== object.x) Renderobjects.x = object.x
-                if (Renderobjects.y !== object.y) Renderobjects.y = object.y
+            if (Renderobjects.oid === components.oid) {
+                Renderobjects.transform.x = components.transform.x + (components.sprite.offset.x ?? 0)
+                Renderobjects.transform.y = components.transform.y + (components.sprite.offset.y ?? 0)
             }
         })
     }
 
     removeObject({ oid }) {
-        this.renderObjects = this.renderObjects.filter(object => object.oid !== oid);
+        this.renderObjects = this.renderObjects.filter(components => components.oid !== oid);
     }
 
     clearRender() {
@@ -38,8 +65,22 @@ class RenderEngine {
     }
 
     render(context) {
-        this.renderObjects.forEach(Object => {
-            context.drawImage(Object.image, Object.x, Object.y)
+        this.renderObjects.forEach(components => {
+            if (components.sprite?.crop) {
+                context.drawImage(components.sprite.image,
+                    components.sprite.crop.x,
+                    components.sprite.crop.y,
+                    components.sprite.crop.width,
+                    components.sprite.crop.height,
+                    components.transform.x,
+                    components.transform.y,
+                    components.sprite.crop.width,
+                    components.sprite.crop.height)
+            } else {
+                context.drawImage(components.sprite.image,
+                    components.transform.x,
+                    components.transform.y)
+            }
         })
     }
 

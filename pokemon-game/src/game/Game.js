@@ -12,12 +12,12 @@ class Game {
 
     async start() {
         this.activeScene = new IslandHouse()
-        await this.activeScene.start()
+        await this.activeScene.start({ canvas: this.canvas })
         this.loop()
     }
 
     loop() {
-        this.context.clearRect(0, 0, this.width, this.height)
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.activeScene?.update();
         renderEngine.render(this.context);
         requestAnimationFrame(() => this.loop())
