@@ -3,6 +3,7 @@ class RenderEngine {
     constructor() {
         this.idbase = 0
         this.renderObjects = []
+        this.camera = { x: 0, y: 0 }
 
     }
 
@@ -64,22 +65,31 @@ class RenderEngine {
         this.renderObjects.length = 0
     }
 
+    setCamera(camera) {
+        this.camera = camera
+    }
+
     render(context) {
         this.renderObjects.forEach(components => {
+            const screenX = components.transform.x - this.camera.x;
+            const screenY = components.transform.y - this.camera.y;
             if (components.sprite?.crop) {
-                context.drawImage(components.sprite.image,
+                context.drawImage(
+                    components.sprite.image,
                     components.sprite.crop.x,
                     components.sprite.crop.y,
                     components.sprite.crop.width,
                     components.sprite.crop.height,
-                    components.transform.x,
-                    components.transform.y,
+                    screenX,
+                    screenY,
                     components.sprite.crop.width,
                     components.sprite.crop.height)
             } else {
-                context.drawImage(components.sprite.image,
-                    components.transform.x,
-                    components.transform.y)
+                context.drawImage(
+                    components.sprite.image,
+                    screenX,
+                    screenY
+                )
             }
         })
     }
